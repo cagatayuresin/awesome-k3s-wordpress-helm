@@ -77,6 +77,16 @@ spec:
               value: {{ .Values.wordpress.tablePrefix | quote }}
             - name: WORDPRESS_DEBUG
               value: {{ .Values.wordpress.debug | quote }}
+            {{- if .Values.redis.enabled }}
+            - name: WORDPRESS_CONFIG_EXTRA
+              value: |
+                define('WP_REDIS_HOST', '{{ include "wordpress.fullname" . }}-redis');
+                define('WP_REDIS_PORT', 6379);
+                define('WP_REDIS_PASSWORD', '{{ .Values.redis.password }}');
+                define('WP_REDIS_TIMEOUT', 1);
+                define('WP_REDIS_READ_TIMEOUT', 1);
+                define('WP_REDIS_DATABASE', 0);
+            {{- end }}
             {{- with .Values.wordpress.extraEnv }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
