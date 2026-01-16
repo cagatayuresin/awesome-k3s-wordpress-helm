@@ -16,6 +16,7 @@ A production-ready WordPress Helm chart optimized for K3s with automatic Let's E
 - 🏭 **Production Ready** - Resource limits, health checks, and security contexts
 - 🚀 **K3s Optimized** - Uses Traefik ingress and local-path storage class
 - 📦 **Single Command Deploy** - Get WordPress running in minutes
+- 🚄 **Optional Redis Cache** - Boost performance with object caching
 
 ## 📋 Prerequisites
 
@@ -132,6 +133,16 @@ helm install my-wordpress wordpress-helm/ -f my-values.yaml
 | `persistence.wordpress.size` | WP PVC size | `10Gi` |
 | `persistence.mysql.enabled` | Enable MySQL persistence | `true` |
 | `persistence.mysql.size` | MySQL PVC size | `10Gi` |
+
+#### Redis (Optional)
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `redis.enabled` | Enable Redis cache | `false` |
+| `redis.image.tag` | Redis image tag | `7-alpine` |
+| `redis.password` | Redis password | `changeme-redis-password` |
+| `redis.maxMemory` | Max memory for cache | `128mb` |
+| `redis.persistence.enabled` | Enable Redis persistence | `false` |
+| `redis.persistence.size` | Redis PVC size | `1Gi` |
 
 </details>
 

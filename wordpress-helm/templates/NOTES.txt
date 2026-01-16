@@ -31,6 +31,11 @@ View WordPress logs:
 View MySQL logs:
   kubectl logs -f statefulset/{{ include "wordpress.mysql.serviceName" . }} -n {{ include "wordpress.namespace" . }}
 
+{{- if .Values.redis.enabled }}
+View Redis logs:
+  kubectl logs -f deployment/{{ include "wordpress.fullname" . }}-redis -n {{ include "wordpress.namespace" . }}
+{{- end }}
+
 -------------------------------------------------------------------------------
   🌍 Access Your Site
 -------------------------------------------------------------------------------

@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - MySQL 8.0 StatefulSet with persistent storage
 - Automatic Let's Encrypt SSL via cert-manager
 - Traefik ingress integration for K3s
+- **Optional Redis object cache support** (Redis 7-alpine)
 - Configurable values for:
   - Domain and www redirect
   - Let's Encrypt email and server
@@ -21,7 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Database credentials
   - Resource limits and requests
   - Persistence storage size
-- Health checks for WordPress and MySQL
+  - Redis enable/disable and configuration
+- Health checks for WordPress, MySQL, and Redis
 - Init container for MySQL readiness
 - Production-ready example values
 - Comprehensive documentation
