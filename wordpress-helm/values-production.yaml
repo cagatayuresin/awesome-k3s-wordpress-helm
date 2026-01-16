@@ -1,0 +1,93 @@
+# =============================================================================
+# Production Values Example
+# =============================================================================
+# Copy this file and customize for your production deployment:
+#   cp values-production.yaml my-production-values.yaml
+#   helm install wordpress wordpress-helm/ -f my-production-values.yaml
+# =============================================================================
+
+# Your domain
+domain: yourdomain.com
+enableWwwRedirect: true
+
+# Let's Encrypt configuration
+letsencrypt:
+  email: admin@yourdomain.com
+  # Production server (use staging for testing)
+  server: https://acme-v02.api.letsencrypt.org/directory
+  createClusterIssuer: true
+  clusterIssuerName: letsencrypt-prod
+
+# WordPress configuration
+wordpress:
+  image:
+    repository: wordpress
+    tag: 6.9.0-php8.2-apache
+    pullPolicy: IfNotPresent
+  
+  replicas: 1
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  
+  tablePrefix: wp_
+  debug: false
+
+# MySQL configuration - CHANGE THESE PASSWORDS!
+mysql:
+  image:
+    repository: mysql
+    tag: "8.0"
+    pullPolicy: IfNotPresent
+  
+  # ⚠️ IMPORTANT: Change these to secure passwords!
+  rootPassword: "CHANGE-THIS-ROOT-PASSWORD-123!"
+  database: wordpress
+  user: wordpress
+  password: "CHANGE-THIS-WP-PASSWORD-456!"
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  
+  characterSet: utf8mb4
+  collation: utf8mb4_unicode_ci
+
+# Persistence for production
+persistence:
+  storageClass: local-path
+  
+  wordpress:
+    enabled: true
+    size: 20Gi
+    accessMode: ReadWriteOnce
+  
+  mysql:
+    enabled: true
+    size: 20Gi
+    accessMode: ReadWriteOnce
+
+# Health checks
+healthChecks:
+  wordpress:
+    enabled: true
+    initialDelaySeconds: 60
+    periodSeconds: 15
+    timeoutSeconds: 10
+    failureThreshold: 6
+  
+  mysql:
+    enabled: true
+    initialDelaySeconds: 60
+    periodSeconds: 15
+    timeoutSeconds: 10
+    failureThreshold: 6

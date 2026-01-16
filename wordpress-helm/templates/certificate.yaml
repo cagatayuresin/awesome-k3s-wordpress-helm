@@ -1,0 +1,19 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "wordpress.certificateName" . }}
+  namespace: {{ include "wordpress.namespace" . }}
+  labels:
+    {{- include "wordpress.labels" . | nindent 4 }}
+spec:
+  secretName: {{ include "wordpress.tlsSecretName" . }}
+  issuerRef:
+    name: {{ .Values.letsencrypt.clusterIssuerName }}
+    kind: ClusterIssuer
+  dnsNames:
+    - {{ .Values.domain }}
+    {{- if .Values.enableWwwRedirect }}
+    - www.{{ .Values.domain }}
+    {{- end }}
+{{- end }}

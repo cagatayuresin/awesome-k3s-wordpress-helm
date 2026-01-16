@@ -1,0 +1,165 @@
+# =============================================================================
+# WordPress Helm Chart - Production Configuration
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Namespace Configuration
+# -----------------------------------------------------------------------------
+namespace: wordpress
+createNamespace: true
+
+# -----------------------------------------------------------------------------
+# Domain Configuration
+# -----------------------------------------------------------------------------
+domain: example.com
+# Set to true to also handle www.domain
+enableWwwRedirect: true
+
+# -----------------------------------------------------------------------------
+# Let's Encrypt SSL Configuration
+# -----------------------------------------------------------------------------
+letsencrypt:
+  # Email for certificate notifications (required)
+  email: admin@example.com
+  # Use "https://acme-staging-v02.api.letsencrypt.org/directory" for testing
+  # Use "https://acme-v02.api.letsencrypt.org/directory" for production
+  server: https://acme-v02.api.letsencrypt.org/directory
+  # Create ClusterIssuer resource
+  createClusterIssuer: true
+  # ClusterIssuer name (use existing if createClusterIssuer is false)
+  clusterIssuerName: letsencrypt-prod
+
+# -----------------------------------------------------------------------------
+# WordPress Configuration
+# -----------------------------------------------------------------------------
+wordpress:
+  image:
+    repository: wordpress
+    tag: 6.9.0-php8.2-apache
+    pullPolicy: IfNotPresent
+  
+  replicas: 1
+  
+  # Resource limits and requests
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  
+  # WordPress specific settings
+  tablePrefix: wp_
+  debug: false
+  
+  # Extra environment variables (optional)
+  extraEnv: []
+  # - name: WORDPRESS_CONFIG_EXTRA
+  #   value: |
+  #     define('WP_MEMORY_LIMIT', '256M');
+
+# -----------------------------------------------------------------------------
+# MySQL Configuration
+# -----------------------------------------------------------------------------
+mysql:
+  image:
+    repository: mysql
+    tag: "8.0"
+    pullPolicy: IfNotPresent
+  
+  # Database credentials (CHANGE THESE IN PRODUCTION!)
+  rootPassword: "changeme-root-password"
+  database: wordpress
+  user: wordpress
+  password: "changeme-wordpress-password"
+  
+  # Resource limits and requests
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  
+  # MySQL configuration
+  characterSet: utf8mb4
+  collation: utf8mb4_unicode_ci
+
+# -----------------------------------------------------------------------------
+# Persistence Configuration
+# -----------------------------------------------------------------------------
+persistence:
+  # Storage class (local-path is default for k3s)
+  storageClass: local-path
+  
+  wordpress:
+    enabled: true
+    size: 10Gi
+    accessMode: ReadWriteOnce
+  
+  mysql:
+    enabled: true
+    size: 10Gi
+    accessMode: ReadWriteOnce
+
+# -----------------------------------------------------------------------------
+# Ingress Configuration
+# -----------------------------------------------------------------------------
+ingress:
+  enabled: true
+  className: traefik
+  annotations: {}
+  # Additional annotations can be added here
+
+# -----------------------------------------------------------------------------
+# Service Configuration
+# -----------------------------------------------------------------------------
+service:
+  wordpress:
+    type: ClusterIP
+    port: 80
+  
+  mysql:
+    type: ClusterIP
+    port: 3306
+
+# -----------------------------------------------------------------------------
+# Security Context
+# -----------------------------------------------------------------------------
+securityContext:
+  wordpress:
+    runAsUser: 33
+    runAsGroup: 33
+    fsGroup: 33
+  
+  mysql:
+    runAsUser: 999
+    runAsGroup: 999
+    fsGroup: 999
+
+# -----------------------------------------------------------------------------
+# Health Checks
+# -----------------------------------------------------------------------------
+healthChecks:
+  wordpress:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+  
+  mysql:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+
+# -----------------------------------------------------------------------------
+# Node Selector, Tolerations, Affinity
+# -----------------------------------------------------------------------------
+nodeSelector: {}
+tolerations: []
+affinity: {}

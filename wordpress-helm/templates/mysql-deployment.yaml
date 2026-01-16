@@ -1,0 +1,109 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "wordpress.mysql.serviceName" . }}
+  namespace: {{ include "wordpress.namespace" . }}
+  labels:
+    {{- include "wordpress.mysql.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "wordpress.mysql.serviceName" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "wordpress.mysql.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "wordpress.mysql.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      securityContext:
+        fsGroup: {{ .Values.securityContext.mysql.fsGroup }}
+      containers:
+        - name: mysql
+          image: "{{ .Values.mysql.image.repository }}:{{ .Values.mysql.image.tag }}"
+          imagePullPolicy: {{ .Values.mysql.image.pullPolicy }}
+          ports:
+            - name: mysql
+              containerPort: 3306
+              protocol: TCP
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress.secretName" . }}
+                  key: mysql-root-password
+            - name: MYSQL_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress.secretName" . }}
+                  key: mysql-database
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress.secretName" . }}
+                  key: mysql-user
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "wordpress.secretName" . }}
+                  key: mysql-password
+            - name: MYSQL_CHARACTER_SET_SERVER
+              value: {{ .Values.mysql.characterSet | quote }}
+            - name: MYSQL_COLLATION_SERVER
+              value: {{ .Values.mysql.collation | quote }}
+          {{- if .Values.healthChecks.mysql.enabled }}
+          livenessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - localhost
+                - -u
+                - root
+                - -p$(MYSQL_ROOT_PASSWORD)
+            initialDelaySeconds: {{ .Values.healthChecks.mysql.initialDelaySeconds }}
+            periodSeconds: {{ .Values.healthChecks.mysql.periodSeconds }}
+            timeoutSeconds: {{ .Values.healthChecks.mysql.timeoutSeconds }}
+            failureThreshold: {{ .Values.healthChecks.mysql.failureThreshold }}
+          readinessProbe:
+            exec:
+              command:
+                - mysqladmin
+                - ping
+                - -h
+                - localhost
+                - -u
+                - root
+                - -p$(MYSQL_ROOT_PASSWORD)
+            initialDelaySeconds: 5
+            periodSeconds: {{ .Values.healthChecks.mysql.periodSeconds }}
+            timeoutSeconds: {{ .Values.healthChecks.mysql.timeoutSeconds }}
+            failureThreshold: {{ .Values.healthChecks.mysql.failureThreshold }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.mysql.resources | nindent 12 }}
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
+      volumes:
+        {{- if .Values.persistence.mysql.enabled }}
+        - name: mysql-data
+          persistentVolumeClaim:
+            claimName: {{ include "wordpress.mysql.pvcName" . }}
+        {{- else }}
+        - name: mysql-data
+          emptyDir: {}
+        {{- end }}

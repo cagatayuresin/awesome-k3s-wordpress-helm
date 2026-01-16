@@ -1,0 +1,68 @@
+===============================================================================
+  🎉 WordPress has been deployed successfully!
+===============================================================================
+
+📍 Namespace: {{ include "wordpress.namespace" . }}
+🌐 Domain: {{ .Values.domain }}
+
+-------------------------------------------------------------------------------
+  🔐 SSL Certificate Status
+-------------------------------------------------------------------------------
+
+Check certificate status:
+  kubectl get certificate -n {{ include "wordpress.namespace" . }}
+
+Check certificate request:
+  kubectl get certificaterequest -n {{ include "wordpress.namespace" . }}
+
+View certificate details:
+  kubectl describe certificate {{ include "wordpress.certificateName" . }} -n {{ include "wordpress.namespace" . }}
+
+-------------------------------------------------------------------------------
+  📊 Pod Status
+-------------------------------------------------------------------------------
+
+Check pod status:
+  kubectl get pods -n {{ include "wordpress.namespace" . }}
+
+View WordPress logs:
+  kubectl logs -f deployment/{{ include "wordpress.wordpress.serviceName" . }} -n {{ include "wordpress.namespace" . }}
+
+View MySQL logs:
+  kubectl logs -f statefulset/{{ include "wordpress.mysql.serviceName" . }} -n {{ include "wordpress.namespace" . }}
+
+-------------------------------------------------------------------------------
+  🌍 Access Your Site
+-------------------------------------------------------------------------------
+
+Once the certificate is issued (usually 1-2 minutes), access your site at:
+
+  https://{{ .Values.domain }}
+
+{{- if .Values.enableWwwRedirect }}
+  https://www.{{ .Values.domain }}
+{{- end }}
+
+-------------------------------------------------------------------------------
+  ⚠️  Important Notes
+-------------------------------------------------------------------------------
+
+1. Make sure your DNS A record points to your k3s node's public IP
+2. Certificate issuance may take 1-2 minutes
+3. If certificate fails, check ClusterIssuer status:
+   kubectl describe clusterissuer {{ .Values.letsencrypt.clusterIssuerName }}
+
+-------------------------------------------------------------------------------
+  🔧 Troubleshooting
+-------------------------------------------------------------------------------
+
+If pods are not starting:
+  kubectl describe pod -l app.kubernetes.io/instance={{ .Release.Name }} -n {{ include "wordpress.namespace" . }}
+
+If ingress is not working:
+  kubectl describe ingress {{ include "wordpress.fullname" . }} -n {{ include "wordpress.namespace" . }}
+
+Check Traefik logs:
+  kubectl logs -n kube-system -l app.kubernetes.io/name=traefik
+
+===============================================================================

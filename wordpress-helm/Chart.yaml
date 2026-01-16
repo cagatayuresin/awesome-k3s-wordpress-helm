@@ -1,0 +1,20 @@
+apiVersion: v2
+name: wordpress
+description: A production-ready WordPress Helm chart for K3s with Let's Encrypt SSL support
+type: application
+version: 1.0.0
+appVersion: "6.9.0"
+keywords:
+  - wordpress
+  - cms
+  - blog
+  - php
+  - mysql
+  - k3s
+  - letsencrypt
+home: https://github.com/cagatayuresin/awesome-k3s-wordpress-helm
+sources:
+  - https://github.com/cagatayuresin/awesome-k3s-wordpress-helm
+maintainers:
+  - name: Cagatay Uresin
+    url: https://github.com/cagatayuresin

@@ -1,0 +1,50 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "wordpress.fullname" . }}
+  namespace: {{ include "wordpress.namespace" . }}
+  labels:
+    {{- include "wordpress.labels" . | nindent 4 }}
+  annotations:
+    # cert-manager annotation for automatic certificate
+    cert-manager.io/cluster-issuer: {{ .Values.letsencrypt.clusterIssuerName | quote }}
+    # Traefik annotations
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    {{- with .Values.ingress.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  tls:
+    - hosts:
+        - {{ .Values.domain }}
+        {{- if .Values.enableWwwRedirect }}
+        - www.{{ .Values.domain }}
+        {{- end }}
+      secretName: {{ include "wordpress.tlsSecretName" . }}
+  rules:
+    - host: {{ .Values.domain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "wordpress.wordpress.serviceName" . }}
+                port:
+                  number: {{ .Values.service.wordpress.port }}
+    {{- if .Values.enableWwwRedirect }}
+    - host: www.{{ .Values.domain }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "wordpress.wordpress.serviceName" . }}
+                port:
+                  number: {{ .Values.service.wordpress.port }}
+    {{- end }}
+{{- end }}
